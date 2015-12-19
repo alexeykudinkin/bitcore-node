@@ -22,6 +22,7 @@ module.exports.services.Address = require('./lib/services/address');
 module.exports.services.Bitcoin = require('./lib/services/bitcoind');
 module.exports.services.DB = require('./lib/services/db');
 module.exports.services.Web = require('./lib/services/web');
+module.exports.services.CommonBlockchain = require('./lib/services/common-blockchain')
 
 module.exports.scaffold = {};
 module.exports.scaffold.create = require('./lib/scaffold/create');
