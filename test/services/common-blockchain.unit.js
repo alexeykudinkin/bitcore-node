@@ -18,7 +18,7 @@ describe('Common Blockchain Interface', function () {
 
   });
 
-  describe('#getAddressSummary', function () {
+  describe('#getAddressesSummary', function () {
     var summary = {
       totalReceived:  3487110,
       totalSpent:     0,
@@ -42,10 +42,10 @@ describe('Common Blockchain Interface', function () {
 
     var cbs = new CommonBlockchain({ node: node});
 
-    node.services.address.getAddressSummary = sinon.stub().callsArgWith(2, null, summary);
+    node.services.address.getAddressesSummary = sinon.stub().callsArgWith(2, null, summary);
 
     it('should return summary for the address', function(done) {
-      cbs.getAddressSummary([ 'mpkDdnLq26djg17s6cYknjnysAm3QwRzu2' ], function(err, summary) {
+      cbs.getAddressesSummary([ 'mpkDdnLq26djg17s6cYknjnysAm3QwRzu2' ], function(err, summary) {
         should.not.exist(err);
 
         summary[0].address       .should.equal('mpkDdnLq26djg17s6cYknjnysAm3QwRzu2');
