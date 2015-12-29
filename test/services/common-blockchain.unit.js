@@ -6,11 +6,23 @@ var sinon = require('sinon');
 var bitcoreNode = require('../../');
 var bitcoreLib = require('bitcore-lib');
 
+var transactionData = require('../data/bitcoin-transactions.json');
+
 var CommonBlockchain = bitcoreNode.services.CommonBlockchain;
 
-var Networks  = bitcoreLib.Networks;
+var Networks    = bitcoreLib.Networks;
+var Transaction = bitcoreLib.Transaction;
+
 
 describe('Common Blockchain Interface', function () {
+
+  var node = {
+    datadir: 'testdir',
+    network: Networks.testnet,
+    services: {
+      address: {}
+    }
+  };
 
   describe('@constructor', function () {
 
@@ -18,7 +30,7 @@ describe('Common Blockchain Interface', function () {
 
   });
 
-  describe('#getAddressesSummary', function () {
+  describe('#addresses.summary', function () {
     var summary = {
       totalReceived:  3487110,
       totalSpent:     0,
@@ -32,20 +44,12 @@ describe('Common Blockchain Interface', function () {
       ]
     };
 
-    var node = {
-      datadir: 'testdir',
-      network: Networks.testnet,
-      services: {
-        address: {}
-      }
-    };
+    var cbs = new CommonBlockchain({ node: node });
 
-    var cbs = new CommonBlockchain({ node: node});
-
-    node.services.address.getAddressesSummary = sinon.stub().callsArgWith(2, null, summary);
+    node.services.address.getAddressSummary = sinon.stub().callsArgWith(2, null, summary);
 
     it('should return summary for the address', function(done) {
-      cbs.getAddressesSummary([ 'mpkDdnLq26djg17s6cYknjnysAm3QwRzu2' ], function(err, summary) {
+      cbs.addresses.summary([ 'mpkDdnLq26djg17s6cYknjnysAm3QwRzu2' ], function(err, summary) {
         should.not.exist(err);
 
         summary[0].address       .should.equal('mpkDdnLq26djg17s6cYknjnysAm3QwRzu2');
@@ -58,5 +62,81 @@ describe('Common Blockchain Interface', function () {
     });
 
   });
+
+
+  describe('#addresses.transactions', function () {
+    var history = {
+      totalCount: 1, // The total number of items within "start" and "end"
+      items: [
+        {
+          addresses: {
+            'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW': {
+              inputIndexes: [],
+              outputIndexes: [0]
+            }
+          },
+          satoshis: 1000000000,
+          height: 150, // the block height of the transaction
+          confirmations: 3,
+          timestamp: 1442948127, // in seconds
+          fees: 191,
+          transaction: new Transaction(new Buffer(transactionData[1].hex, 'hex'))
+        }
+      ]
+    };
+
+    var cbs = new CommonBlockchain({ node: node });
+
+    node.services.address.getAddressHistory = sinon.stub().callsArgWith(2, null, history);
+
+    it('should return history for all transactions for the addresses', function(done) {
+      cbs.addresses.transactions([ 'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW' ], null, function(err, txs) {
+        should.not.exist(err);
+
+        txs[0].txId         .should.equal('47a34f835395b7e01e2ee757a301476e2c3f5f6a9245e655a1842f6db2368a58');
+        txs[0].txHex        .should.equal(transactionData[1].hex);
+        txs[0].blockHeight  .should.equal(150);
+        //txs[0].blockId    .should.equal(3487110);
+
+        done();
+      });
+    });
+
+  });
+
+
+  describe('#addresses.unspents', function () {
+    var unspentOuts = [
+      {
+        address: 'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW',
+        txid: '9d956c5d324a1c2b12133f3242deff264a9b9f61be701311373998681b8c1769',
+        outputIndex: 1,
+        height: 150,
+        satoshis: 1000000000,
+        script: '76a9140b2f0a0c31bfe0406b0ccc1381fdbe311946dadc88ac',
+        confirmations: 3
+      }
+    ];
+
+    var cbs = new CommonBlockchain({ node: node });
+
+    node.services.address.getUnspentOutputs = sinon.stub().callsArgWith(2, null, unspentOuts);
+
+    it('should return history for all transactions for the addresses', function(done) {
+      cbs.addresses.unspents([ 'mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW' ], function(err, txs) {
+        should.not.exist(err);
+
+        txs[0].txId           .should.equal('9d956c5d324a1c2b12133f3242deff264a9b9f61be701311373998681b8c1769');
+        txs[0].address        .should.equal('mgY65WSfEmsyYaYPQaXhmXMeBhwp4EcsQW');
+        txs[0].confirmations  .should.equal(3);
+        txs[0].value          .should.equal(1000000000);
+        txs[0].vout           .should.equal(1);
+
+        done();
+      });
+    });
+
+  });
+
 
 });
