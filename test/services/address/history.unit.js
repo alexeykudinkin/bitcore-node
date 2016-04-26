@@ -51,7 +51,7 @@ describe('Address Service History', function() {
       history.getTransactionInfo = sinon.stub().callsArg(1);
       history.combineTransactionInfo = sinon.stub();
       history.sortAndPaginateCombinedArray = sinon.stub();
-      history.getDetailedInfo = sinon.stub().callsArg(1);
+      history.getDetailedInfo = sinon.stub().callsArgWith(1, null, {});
       history.sortTransactionsIntoArray = sinon.stub();
       history.get(function(err, results) {
         if (err) {
@@ -614,11 +614,10 @@ describe('Address Service History', function() {
       transactionInfo.addresses[txAddress] = {};
       transactionInfo.addresses[txAddress].outputIndexes = [1];
       transactionInfo.addresses[txAddress].inputIndexes = [];
-      history.getDetailedInfo(transactionInfo, function(err) {
+      history.getDetailedInfo(transactionInfo, function(err, info) {
         if (err) {
           throw err;
         }
-        var info = history.detailedArray[0];
         info.addresses[txAddress].should.deep.equal({
           outputIndexes: [1],
           inputIndexes: []
